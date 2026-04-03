@@ -1,0 +1,26 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Data and output artifacts
+outputs/models/*.joblib
+outputs/*.log
+data/raw/*.csv
+data/processed/*.csv
+
+# OS files
+.DS_Store

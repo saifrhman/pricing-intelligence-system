@@ -1,0 +1,14 @@
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+xgboost==2.1.1
+yfinance==0.2.54
+matplotlib==3.9.2
+shap==0.46.0
+streamlit==1.39.0
+transformers==4.45.2
+torch==2.4.1
+pydantic==2.9.2
+PyYAML==6.0.2
+joblib==1.4.2
+pytest==8.3.3
