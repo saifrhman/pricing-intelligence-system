@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ModelPerformance(BaseModel):
     """Regression and directional metrics for a model."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     rmse: float
     mae: float
@@ -18,6 +20,8 @@ class ModelPerformance(BaseModel):
 
 class ForecastOutput(BaseModel):
     """Latest return forecast and model context."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     ticker: str
     predicted_return: float
@@ -29,6 +33,8 @@ class ForecastOutput(BaseModel):
 class RiskOutput(BaseModel):
     """Risk scoring output from volatility and drawdown."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     ticker: str
     risk_score: float = Field(ge=0.0, le=1.0)
     volatility_20d: float
@@ -39,6 +45,8 @@ class RiskOutput(BaseModel):
 class AnomalyOutput(BaseModel):
     """Anomaly detector output for latest observation."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     ticker: str
     is_anomaly: bool
     anomaly_score: float
@@ -47,6 +55,8 @@ class AnomalyOutput(BaseModel):
 
 class SentimentOutput(BaseModel):
     """Aggregated sentiment signal from financial headlines."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     available: bool
     source: str
@@ -58,6 +68,8 @@ class SentimentOutput(BaseModel):
 class ExplanationOutput(BaseModel):
     """Top explainability drivers for the latest prediction."""
 
+    model_config = ConfigDict(protected_namespaces=())
+
     available: bool
     model_type: str
     top_features: List[Dict[str, float]]
@@ -66,6 +78,8 @@ class ExplanationOutput(BaseModel):
 
 class DecisionOutput(BaseModel):
     """Final decision-support summary."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     ticker: str
     latest_predicted_return: float

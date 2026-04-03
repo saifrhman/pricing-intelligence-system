@@ -31,7 +31,7 @@ def engineer_features(raw_df: pd.DataFrame) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Input data missing required columns: {sorted(missing)}")
 
-    df = raw_df.copy()
+    df = raw_df[["Date", "Open", "High", "Low", "Close", "Volume"]].copy()
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date").reset_index(drop=True)
 
