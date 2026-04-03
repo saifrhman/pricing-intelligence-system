@@ -8,6 +8,10 @@ data:
   interval: "1d"
   raw_data_dir: "data/raw"
   processed_data_dir: "data/processed"
+  ingestion_timeout_seconds: 30
+  ingestion_max_retries: 3
+  allow_cache_fallback: false
+  demo_mode: false
 
 modeling:
   include_sentiment: true

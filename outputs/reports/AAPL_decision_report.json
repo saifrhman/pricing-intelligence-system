@@ -1,13 +1,13 @@
 {
   "ticker": "AAPL",
-  "latest_predicted_return": -0.012255770650168661,
+  "latest_predicted_return": -0.012255770650168701,
   "direction": "bearish",
   "risk_level": "low",
   "anomaly_status": "not flagged",
-  "sentiment_summary": "positive (0.27)",
+  "sentiment_summary": "negative (-0.32)",
   "top_drivers": [],
-  "recommendation_summary": "The model indicates a bearish next-day return signal (-0.0123). Risk is low and anomaly status is not flagged. Sentiment is positive (0.27). Use this as risk-aware decision support, not a trading instruction.",
+  "recommendation_summary": "The model indicates a bearish next-day return signal (-0.0123). Risk is low and anomaly status is not flagged. Sentiment is negative (-0.32). Use this as risk-aware decision support, not a trading instruction.",
   "caution_notes": [
-    "No major cautionary flags beyond normal market uncertainty."
+    "Recent sentiment is negative and may pressure short-term performance."
   ]
 }

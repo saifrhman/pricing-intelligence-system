@@ -88,8 +88,17 @@ class SentimentAgent:
 
     analyzer: SentimentAnalyzer
 
-    def run(self, headlines: List[str], source: str = "mock_headlines") -> SentimentOutput:
-        return self.analyzer.aggregate(headlines=headlines, source=source)
+    def run(
+        self,
+        headlines: List[str],
+        source: str = "headlines",
+        allow_rule_based_fallback: bool = False,
+    ) -> SentimentOutput:
+        return self.analyzer.aggregate(
+            headlines=headlines,
+            source=source,
+            allow_rule_based_fallback=allow_rule_based_fallback,
+        )
 
 
 @dataclass

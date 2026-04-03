@@ -23,6 +23,7 @@ except Exception:  # pragma: no cover - handled at runtime for portability
 
 TARGET_COL = "target_next_return"
 EXCLUDED_FEATURES = {"Date", TARGET_COL}
+MIN_TRAINING_ROWS = 80
 
 
 def get_feature_columns(df: pd.DataFrame) -> List[str]:
@@ -67,6 +68,12 @@ def train_and_evaluate(
     plot_output_dir: str | Path = "outputs/plots",
 ) -> Dict:
     """Train baseline and ML models using time-aware splits."""
+    if df is None or df.empty:
+        raise ValueError("Forecasting received empty engineered dataset.")
+    if len(df) < MIN_TRAINING_ROWS:
+        raise ValueError(
+            f"Forecasting requires at least {MIN_TRAINING_ROWS} rows, received {len(df)}."
+        )
     if TARGET_COL not in df.columns:
         raise ValueError(f"Expected target column '{TARGET_COL}' in dataframe.")
 
@@ -74,7 +81,20 @@ def train_and_evaluate(
     if not feature_cols:
         raise ValueError("No feature columns available for forecasting.")
 
+    non_numeric = [c for c in feature_cols if not pd.api.types.is_numeric_dtype(df[c])]
+    if non_numeric:
+        raise ValueError(f"Non-numeric feature columns found: {non_numeric}")
+
+    if df[feature_cols + [TARGET_COL]].isna().any().any():
+        raise ValueError("Forecasting input contains NaNs in features or target.")
+
     train_df, val_df, test_df = time_split(df)
+
+    if min(len(train_df), len(val_df), len(test_df)) < 10:
+        raise ValueError(
+            "Forecasting split produced too few rows in one or more partitions. "
+            "Increase data range before training."
+        )
 
     X_train = train_df[feature_cols]
     y_train = train_df[TARGET_COL]

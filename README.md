@@ -25,9 +25,11 @@ This system packages those questions into a modular, testable pipeline.
 - Risk scoring from volatility and drawdown
 - Isolation Forest anomaly detection
 - Optional sentiment analysis (FinBERT via transformers, plus fallback)
+- Explicit sentiment modes (manual headlines, disabled, or demo mock)
 - SHAP explainability (global and latest local drivers)
 - Lightweight multi-agent reasoning layer
 - Streamlit dashboard for end-to-end exploration
+- Data provenance and warnings in decision reports (fresh/cached/demo source)
 
 ## Repository Structure
 ```text
@@ -62,7 +64,10 @@ pricing-intelligence-system/
 ├── tests/
 │   ├── test_features.py
 │   ├── test_forecasting.py
-│   └── test_decision_engine.py
+│   ├── test_decision_engine.py
+│   ├── test_ingestion.py
+│   ├── test_pipeline_robustness.py
+│   └── test_sentiment_modes.py
 ├── main.py
 ├── requirements.txt
 ├── .gitignore
@@ -119,21 +124,41 @@ Optional flags:
 ```bash
 python main.py --disable-sentiment
 python main.py --no-transformer
+python main.py --allow-cache
+python main.py --demo-mode
+python main.py --sentiment-headlines-file headlines.txt
+python main.py --ingestion-timeout-seconds 30 --ingestion-max-retries 3
 python main.py --config config/config.yaml
 ```
 
+### Runtime Modes (Reliability Policy)
+- Normal mode (default): tries fresh Yahoo download only; fails clearly if fresh data is unavailable.
+- Cache mode: use --allow-cache to permit fallback to validated local raw CSV cache if fresh download fails.
+- Demo mode: use --demo-mode to permit synthetic market data and mock sentiment headlines for demonstration only.
+
+This policy avoids silent success from stale/demo inputs and keeps production-style runs honest.
+
 ### 2) Run Streamlit Dashboard
 ```bash
-streamlit run app/streamlit_app.py
+python -m streamlit run app/streamlit_app.py
 ```
+
+In Streamlit, cache fallback, demo mode, and manual headline controls are exposed in the sidebar.
 
 ## Example Outputs
 - `outputs/models/`: trained model artifact (`.joblib`)
 - `outputs/plots/`: prediction and anomaly plots
 - `outputs/shap/`: SHAP global/local charts
-- `outputs/reports/`: JSON and markdown decision reports
+- `outputs/reports/`: JSON and markdown decision reports with provenance metadata
 
 A sample report is included at `outputs/reports/sample_report.md`.
+
+### Report Provenance
+Generated reports include:
+- ingestion source type: fresh, cached, or demo
+- ingestion status and retry attempts
+- sentiment source/mode
+- pipeline warnings when degraded fallbacks were used
 
 ## Testing
 ```bash
@@ -142,7 +167,7 @@ pytest -q
 
 ## Limitations
 - Uses daily OHLCV data; no intraday microstructure modeling.
-- Sentiment uses mock headlines by default unless external headlines are supplied.
+- Sentiment is unavailable unless manual headlines are provided or demo mode is explicitly enabled.
 - This is a single-asset workflow; portfolio optimization is out of scope.
 - Regime shifts can degrade short-horizon model quality.
 

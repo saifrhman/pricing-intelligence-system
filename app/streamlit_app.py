@@ -31,6 +31,13 @@ with st.sidebar:
     end_date = st.date_input("End Date", value=dt.date(2025, 1, 1))
     include_sentiment = st.checkbox("Enable sentiment analysis", value=True)
     use_transformer_sentiment = st.checkbox("Use FinBERT (transformers)", value=True)
+    allow_cache_fallback = st.checkbox("Allow cached market data fallback", value=False)
+    demo_mode = st.checkbox("Enable demo mode (synthetic data/mock sentiment)", value=False)
+    manual_headlines_text = st.text_area(
+        "Manual sentiment headlines (one per line)",
+        value="",
+        help="If empty, sentiment will be unavailable unless demo mode is enabled.",
+    )
     run_button = st.button("Run Pipeline", type="primary")
 
 if run_button:
@@ -40,6 +47,12 @@ if run_button:
 
     with st.spinner("Running pipeline..."):
         try:
+            manual_headlines = [
+                line.strip() for line in manual_headlines_text.splitlines() if line.strip()
+            ]
+            if not manual_headlines:
+                manual_headlines = None
+
             results = run_pipeline(
                 ticker=ticker,
                 start_date=str(start_date),
@@ -47,6 +60,9 @@ if run_button:
                 interval="1d",
                 include_sentiment=include_sentiment,
                 use_transformer_sentiment=use_transformer_sentiment,
+                allow_cache_fallback=allow_cache_fallback,
+                demo_mode=demo_mode,
+                manual_headlines=manual_headlines,
             )
         except Exception as exc:
             st.error(f"Pipeline failed: {exc}")
@@ -62,6 +78,8 @@ if run_button:
     risk = results["risk"]
     sentiment = results["sentiment"]
     explanation = results["explanation"]
+    provenance = results.get("provenance", {})
+    ingestion = provenance.get("ingestion", {})
 
     st.subheader("Final Decision Panel")
     c1, c2, c3, c4 = st.columns(4)
@@ -70,6 +88,15 @@ if run_button:
     c3.metric("Risk Level", decision.risk_level)
     c4.metric("Anomaly", decision.anomaly_status)
     st.info(decision.recommendation_summary)
+
+    st.subheader("Provenance")
+    st.write(
+        f"Market data source: {ingestion.get('source_type', 'unknown')} "
+        f"(status={ingestion.get('status', 'unknown')}, attempts={ingestion.get('attempts', 'unknown')})"
+    )
+    if provenance.get("warnings"):
+        for warning in provenance["warnings"]:
+            st.warning(warning)
 
     st.subheader("Raw Data Preview")
     st.dataframe(raw_df.tail(10), use_container_width=True)

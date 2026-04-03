@@ -18,6 +18,12 @@ def _compute_rsi(close: pd.Series, window: int = 14) -> pd.Series:
 
     rs = avg_gain / avg_loss.replace(0, np.nan)
     rsi = 100 - (100 / (1 + rs))
+
+    # If there are no losses in the window, RSI is conventionally 100.
+    rsi = rsi.where(~((avg_loss == 0) & (avg_gain > 0)), 100.0)
+    # If both gains and losses are zero, market is flat; use neutral RSI.
+    rsi = rsi.where(~((avg_loss == 0) & (avg_gain == 0)), 50.0)
+
     return rsi
 
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List, Tuple
 
 from src.schemas import SentimentOutput
 
@@ -18,6 +18,10 @@ class HeadlineSentiment:
     headline: str
     label: str
     score: float
+
+
+class SentimentAnalysisError(RuntimeError):
+    """Raised when sentiment analysis is requested but cannot be completed."""
 
 
 class SentimentAnalyzer:
@@ -37,10 +41,14 @@ class SentimentAnalyzer:
             self._clf = pipeline("text-classification", model=self.model_name)
         return self._clf
 
-    def analyze_headlines(self, headlines: List[str]) -> List[HeadlineSentiment]:
-        """Score each headline and return normalized outputs."""
+    def analyze_headlines(
+        self,
+        headlines: List[str],
+        allow_rule_based_fallback: bool = False,
+    ) -> Tuple[List[HeadlineSentiment], str]:
+        """Score headlines and return predictions with the method used."""
         if not headlines:
-            return []
+            return [], "none"
 
         if self.use_transformer:
             try:
@@ -53,12 +61,14 @@ class SentimentAnalyzer:
                         score=float(p["score"]),
                     )
                     for h, p in zip(headlines, preds)
-                ]
-            except Exception:
-                # Fallback to lexicon if model download/inference fails.
-                pass
+                ], "transformer"
+            except Exception as exc:
+                if not allow_rule_based_fallback:
+                    raise SentimentAnalysisError(
+                        "Transformer sentiment inference failed and rule-based fallback is disabled."
+                    ) from exc
 
-        return [self._rule_based_sentiment(h) for h in headlines]
+        return [self._rule_based_sentiment(h) for h in headlines], "rule_based"
 
     def _rule_based_sentiment(self, text: str) -> HeadlineSentiment:
         positive_terms = {"beat", "growth", "upgrade", "surge", "strong", "profit"}
@@ -74,9 +84,17 @@ class SentimentAnalyzer:
             return HeadlineSentiment(text, "negative", min(0.6 + 0.1 * neg_hits, 0.95))
         return HeadlineSentiment(text, "neutral", 0.5)
 
-    def aggregate(self, headlines: List[str], source: str = "headlines") -> SentimentOutput:
+    def aggregate(
+        self,
+        headlines: List[str],
+        source: str = "headlines",
+        allow_rule_based_fallback: bool = False,
+    ) -> SentimentOutput:
         """Aggregate multiple headline-level scores into one signal."""
-        scored = self.analyze_headlines(headlines)
+        scored, method = self.analyze_headlines(
+            headlines,
+            allow_rule_based_fallback=allow_rule_based_fallback,
+        )
         if not scored:
             return SentimentOutput(
                 available=False,
@@ -105,7 +123,7 @@ class SentimentAnalyzer:
 
         return SentimentOutput(
             available=True,
-            source=source,
+            source=f"{source}:{method}",
             sentiment_label=label,
             sentiment_score=max(-1.0, min(1.0, mean_score)),
             headline_count=len(scored),

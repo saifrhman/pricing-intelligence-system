@@ -36,10 +36,17 @@ def detect_anomalies(
     plot_dir: str | Path = "outputs/plots",
 ) -> pd.DataFrame:
     """Fit IsolationForest and append anomaly labels/scores."""
+    if df is None or df.empty:
+        raise ValueError("Anomaly detection received empty input dataframe.")
+    if len(df) < 30:
+        raise ValueError("Anomaly detection requires at least 30 rows.")
+
     data = df.copy()
     selected_features = feature_cols or default_anomaly_features(data)
     if not selected_features:
         raise ValueError("No valid features found for anomaly detection.")
+    if data[selected_features].isna().any().any():
+        raise ValueError("Anomaly features contain missing values.")
 
     model = IsolationForest(
         contamination=contamination,

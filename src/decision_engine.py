@@ -50,7 +50,7 @@ def make_decision(
         caution_notes.append("No major cautionary flags beyond normal market uncertainty.")
 
     sentiment_summary = (
-        f"{sentiment.sentiment_label} ({sentiment.sentiment_score:.2f})"
+        f"{sentiment.sentiment_label} ({sentiment.sentiment_score:.2f}) via {sentiment.source}"
         if sentiment.available
         else "unavailable"
     )

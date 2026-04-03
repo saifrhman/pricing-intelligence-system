@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -72,7 +72,7 @@ class ExplanationOutput(BaseModel):
 
     available: bool
     model_type: str
-    top_features: List[Dict[str, float]]
+    top_features: List[Dict[str, Union[str, float]]]
     latest_expected_value: Optional[float] = None
 
 
