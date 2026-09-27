@@ -7,20 +7,29 @@ __pycache__/
 .mypy_cache/
 .ipynb_checkpoints/
 
-# Virtual environments
+# Virtual environments and secrets
 .venv/
 venv/
 env/
+.env
+.env.*
+!.env.example
 
 # IDE
 .vscode/
 .idea/
 
-# Data and output artifacts
+# Data and generated output artifacts
 outputs/models/*.joblib
 outputs/*.log
+outputs/history/
+outputs/sessions/
+outputs/traces/
+outputs/evaluation/
 data/raw/*.csv
 data/processed/*.csv
+data/vector_store/
+data/qdrant/
 
 # OS files
 .DS_Store

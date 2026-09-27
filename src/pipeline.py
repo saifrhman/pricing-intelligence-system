@@ -20,6 +20,7 @@ from src.anomaly_detection import detect_anomalies
 from src.data_ingestion import IngestionMetadata, fetch_market_data
 from src.feature_engineering import engineer_features, save_processed_data
 from src.forecasting import train_and_evaluate
+from src.harness.state import HistoricalRunStore
 from src.schemas import SentimentOutput
 from src.sentiment import SentimentAnalysisError, SentimentAnalyzer, default_mock_headlines
 from src.utils import save_json
@@ -225,19 +226,7 @@ def run_pipeline(
         warnings=warnings,
     )
 
-    decision_report = {
-        "decision": decision_output.model_dump(),
-        "provenance": provenance,
-        "artifacts": {
-            "model_path": forecast_payload["model_path"],
-            "prediction_plot_path": forecast_payload["prediction_plot_path"],
-        },
-    }
-    report_path = reports_dir / f"{ticker.upper()}_decision_report.json"
-    save_json(report_path, decision_report)
-    logger.info("Decision report saved to %s", report_path)
-
-    return {
+    result = {
         "raw_df": raw_df,
         "features_df": features_df,
         "predictions_df": forecast_payload["predictions_df"],
@@ -252,9 +241,38 @@ def run_pipeline(
         "artifacts": {
             "model_path": forecast_payload["model_path"],
             "prediction_plot_path": forecast_payload["prediction_plot_path"],
-            "decision_report_path": str(report_path),
         },
     }
+
+    history_store = HistoricalRunStore(outputs_path / "history")
+    history_summary = history_store.from_pipeline_results(result, ticker=ticker)
+    history_path = history_store.save(history_summary)
+
+    report_path = reports_dir / f"{ticker.upper()}_decision_report.json"
+    result["run_id"] = history_summary.run_id
+    result["timestamp_utc"] = history_summary.timestamp_utc
+    result["artifacts"]["history_path"] = str(history_path)
+    result["artifacts"]["decision_report_path"] = str(report_path)
+
+    decision_report = {
+        "run_id": history_summary.run_id,
+        "timestamp_utc": history_summary.timestamp_utc,
+        "analysis": {
+            "forecast": quant_output.model_dump(),
+            "risk": risk_output.model_dump(),
+            "anomaly": anomaly_output.model_dump(),
+            "sentiment": sentiment_output.model_dump(),
+            "explanation": explanation_output.model_dump(),
+        },
+        "decision": decision_output.model_dump(),
+        "provenance": provenance,
+        "artifacts": result["artifacts"],
+    }
+    save_json(report_path, decision_report)
+    logger.info("Decision report saved to %s", report_path)
+    logger.info("Structured analytical history saved to %s", history_path)
+
+    return result
 
 
 def format_markdown_report(results: Dict) -> str:

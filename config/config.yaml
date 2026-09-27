@@ -17,5 +17,21 @@ modeling:
   include_sentiment: true
   use_transformer_sentiment: true
 
+agentic:
+  model: "gpt-5.6-terra"
+  max_steps: 12
+  max_revision_cycles: 1
+  tracing_enabled: true
+  tool_timeout_seconds: 20
+
+rag:
+  top_k: 6
+  local_store: "data/vector_store/evidence.json"
+  qdrant_collection: "pricing_evidence"
+
+mcp:
+  enabled: true
+  read_only: true
+
 outputs:
   base_dir: "outputs"
