@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is the predicted return?",
+    "expected_agents": ["quant"]
+  },
+  {
+    "question": "Why is risk high and is the market behavior unusual?",
+    "expected_agents": ["risk", "research"]
+  },
+  {
+    "question": "What do recent filings say about supply-chain risk?",
+    "expected_agents": ["research"]
+  },
+  {
+    "question": "What features are driving the forecast?",
+    "expected_agents": ["quant", "explanation"]
+  },
+  {
+    "question": "Give me a complete intelligence assessment.",
+    "expected_agents": ["quant", "risk", "research", "sentiment", "explanation"]
+  }
+]
